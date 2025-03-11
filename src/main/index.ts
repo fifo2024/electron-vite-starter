@@ -2,8 +2,10 @@ import { app, shell, BrowserWindow, ipcMain, protocol } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import Fastify, { FastifyInstance, FastifyRequest, InjectOptions } from 'fastify'
+import log from 'electron-log'
 import icon from '../../resources/icon.png?asset'
-import { checkForUpdates } from './updater'
+import checkForUpdates from './updater'
+import { getAppVersion } from './version'
 
 // 创建一个 Fastify 实例
 const fastify: FastifyInstance = Fastify({ logger: true })
@@ -32,7 +34,9 @@ protocol.registerSchemesAsPrivileged([
     },
 ])
 
-function createWindow(): void {
+let mainWindow: BrowserWindow | null = null
+
+function createWindow(): BrowserWindow {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: 900,
@@ -50,12 +54,6 @@ function createWindow(): void {
         mainWindow.show()
     })
 
-    // 检查更新
-    ipcMain.on('checkUpdate', () => {
-        console.log('check for updates')
-        checkForUpdates(mainWindow, ipcMain)
-    })
-
     mainWindow.webContents.setWindowOpenHandler(details => {
         shell.openExternal(details.url)
         return { action: 'deny' }
@@ -68,6 +66,8 @@ function createWindow(): void {
     } else {
         mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
     }
+
+    return mainWindow
 }
 
 // This method will be called when Electron has finished
@@ -89,6 +89,7 @@ app.whenReady().then(async () => {
     // IPC test
     ipcMain.on('ping', () => console.log('pong'))
 
+    // 协议监听函数
     protocol.handle(CUSTOM_PROTOCOL, async (request: GlobalRequest) => {
         let url = request.url.replace(`${CUSTOM_PROTOCOL}://`, '/')
         if (url.endsWith('/')) {
@@ -116,13 +117,22 @@ app.whenReady().then(async () => {
         })
     })
 
-    createWindow()
+    mainWindow = createWindow()
 
     app.on('activate', function () {
         // On macOS it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
-        if (BrowserWindow.getAllWindows().length === 0) createWindow()
+        if (BrowserWindow.getAllWindows().length === 0) {
+            mainWindow = createWindow()
+        }
     })
+})
+
+app.on('ready', () => {
+    // 每次启动程序，就检查更新
+    setTimeout(() => {
+        checkForUpdates(mainWindow)
+    }, 3000)
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -136,3 +146,15 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+// 检查更新
+ipcMain.on('checkUpdate', () => {
+    console.log('check for updates')
+    log.info('checkFormUpdates::')
+    checkForUpdates(mainWindow)
+})
+
+// 获取应用版本
+ipcMain.handle('getAppVersion', (): string => {
+    return getAppVersion()
+})

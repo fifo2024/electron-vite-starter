@@ -57,6 +57,9 @@ importers:
       electron-builder:
         specifier: ^25.1.8
         version: 25.1.8(electron-builder-squirrel-windows@25.1.8)
+      electron-notarize:
+        specifier: ^1.2.2
+        version: 1.2.2
       electron-vite:
         specifier: ^3.0.0
         version: 3.0.0(vite@6.2.0(@types/node@22.13.5))
@@ -1368,6 +1371,11 @@ packages:
   electron-log@5.3.1:
     resolution: {integrity: sha512-STiavmnpomuGdmOy5ctskK8ftHqrZRICFiX+VzzXwhI8gt4ZY0zJSGy9sRZpRHn4Mshh/O8UNXw05D0WaDRxRQ==}
     engines: {node: '>= 14'}
+
+  electron-notarize@1.2.2:
+    resolution: {integrity: sha512-ZStVWYcWI7g87/PgjPJSIIhwQXOaw4/XeXU+pWqMMktSLHaGMLHdyPPN7Cmao7+Cr7fYufA16npdtMndYciHNw==}
+    engines: {node: '>= 10.0.0'}
+    deprecated: Please use @electron/notarize moving forward.  There is no API change, just a package name change
 
   electron-publish@25.1.7:
     resolution: {integrity: sha512-+jbTkR9m39eDBMP4gfbqglDd6UvBC7RLh5Y0MhFSsc6UkGHj9Vj9TWobxevHYMMqmoujL11ZLjfPpMX+Pt6YEg==}
@@ -4407,6 +4415,13 @@ snapshots:
       - supports-color
 
   electron-log@5.3.1: {}
+
+  electron-notarize@1.2.2:
+    dependencies:
+      debug: 4.4.0
+      fs-extra: 9.1.0
+    transitivePeerDependencies:
+      - supports-color
 
   electron-publish@25.1.7:
     dependencies:
