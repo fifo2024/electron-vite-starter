@@ -48,11 +48,8 @@ export default function checkForUpdates(mainWindow): void {
     // })
 
     autoUpdater.on('download-progress', progress => {
-        logger.info('当前下载进度' + JSON.stringify(progress))
-        // 计算下载百分比
-        const downloadPercent = Math.round(progress.percent * 100) / 100
         // 实时同步下载进度到渲染进程，以便于渲染进程显示下载进度
-        mainWindow.webContents.send('download-progress', downloadPercent)
+        mainWindow.webContents.send('download-progress', progress)
     })
 
     // 监听'update-downloaded'事件，新版本下载完成时触发

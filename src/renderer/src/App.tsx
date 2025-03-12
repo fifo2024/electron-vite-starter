@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Versions from './components/Versions'
 import electronLogo from './assets/electron.svg'
 
@@ -6,6 +6,7 @@ const { electron } = window
 const { ipcRenderer } = electron
 
 function App(): JSX.Element {
+    const [process, setProcess] = useState(0)
     const ipcHandle = (): void => ipcRenderer.send('ping')
 
     useEffect(() => {
@@ -22,10 +23,16 @@ function App(): JSX.Element {
             }
         })
 
-        ipcRenderer.on('download-progress', process => {
-            // 提示用户更新已下载，可以重启应用
-            console.log('Update Process::' + process)
+        ipcRenderer.on('download-progress', (event, { bytesPerSecond, delta, percent, total, transferred }) => {
+            console.log('Update Process::', { bytesPerSecond, delta, percent, total, transferred })
+            setProcess(percent)
         })
+
+        return (): void => {
+            ipcRenderer.removeAllListeners('update_available')
+            ipcRenderer.removeAllListeners('download-progress')
+            ipcRenderer.removeAllListeners('update_downloaded')
+        }
     }, [])
 
     return (
@@ -52,6 +59,7 @@ function App(): JSX.Element {
                 </div>
             </div>
             <Versions></Versions>
+            <div>Process::{process}</div>
         </>
     )
 }

@@ -7,7 +7,6 @@ function Versions(): JSX.Element {
     const [versions] = useState(process.versions)
     const [data, setData] = useState('')
     const [appVersion, setAppVersion] = useState('')
-    console.log('versions::', versions)
 
     const onSendMyapp = (): void => {
         fetch('myapp://data/?abc=123&e=333')
@@ -15,7 +14,6 @@ function Versions(): JSX.Element {
                 return res.json()
             })
             .then(res => {
-                console.log(9, res)
                 setData(JSON.stringify(res))
             })
     }
