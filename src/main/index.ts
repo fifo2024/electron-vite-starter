@@ -1,20 +1,34 @@
-import { app, shell, BrowserWindow, ipcMain, protocol } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol, IpcMainEvent } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import Fastify, { FastifyInstance, FastifyRequest, InjectOptions } from 'fastify'
 import log from 'electron-log'
+import si from 'systeminformation'
 import icon from '../../resources/icon.png?asset'
 import checkForUpdates from './updater'
 import { getAppVersion } from './version'
-
+import { eLog, LogParams } from './common/log'
 // 创建一个 Fastify 实例
 const fastify: FastifyInstance = Fastify({ logger: true })
 
 fastify.get('/data', async (request: FastifyRequest) => {
-    console.log(12, request.url)
+    // console.log(12, request.url)
     const userAgent = request.headers['user-agent']
     console.log(`User-Agent: ${userAgent}`)
     return { hello: 'world' + Math.random() + JSON.stringify(request.query) }
+})
+
+fastify.get('/get_system_info', async (request: FastifyRequest) => {
+    eLog.info(request.url)
+    const cpu = await si.cpu()
+    // console.log('CPU信息：')
+    // console.log(`- 制造商：${cpu.manufacturer}`)
+    // console.log(`- 品牌：${cpu.brand}`)
+    // console.log(`- 速度：${cpu.speed}GHz`)
+    // console.log(`- 核心数：${cpu.cores}`)
+    // console.log(`- 物理核心数：${cpu.physicalCores}`)
+
+    return { cpu }
 })
 
 // 自定义协议名称
@@ -86,9 +100,6 @@ app.whenReady().then(async () => {
         optimizer.watchWindowShortcuts(window)
     })
 
-    // IPC test
-    ipcMain.on('ping', () => console.log('pong'))
-
     // 协议监听函数
     protocol.handle(CUSTOM_PROTOCOL, async (request: GlobalRequest) => {
         let url = request.url.replace(`${CUSTOM_PROTOCOL}://`, '/')
@@ -109,7 +120,7 @@ app.whenReady().then(async () => {
             // query: request.json,
         }
 
-        console.log(20, options)
+        console.log('protocol::handle', options)
         const { payload, statusCode } = await fastify.inject(options)
         console.log(107, statusCode, payload)
         return new Response(payload, {
@@ -147,6 +158,9 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
+// IPC test
+ipcMain.on('ping', () => console.log('pong'))
+
 // 检查更新
 ipcMain.on('checkUpdate', () => {
     console.log('check for updates')
@@ -157,4 +171,26 @@ ipcMain.on('checkUpdate', () => {
 // 获取应用版本
 ipcMain.handle('getAppVersion', (): string => {
     return getAppVersion()
+})
+
+// 日志
+ipcMain.on('eLog', (event: IpcMainEvent, arg: LogParams) => {
+    const { type, value, from } = arg
+    switch (type) {
+        case 'info':
+            eLog.info(`[${from || 'render'}]`, value)
+            break
+        case 'error':
+            eLog.error(`[${from || 'render'}]`, value)
+            break
+        case 'warn':
+            eLog.warn(`[${from || 'render'}]`, value)
+            break
+        case 'debug':
+            eLog.debug(`[${from || 'render'}]`, value)
+            break
+        default:
+            console.log('Unknown log type:', type, ...value)
+            break
+    }
 })

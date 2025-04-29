@@ -3,7 +3,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
-    send: ['checkUpdate', 'getAppVersion'],
+    send: ['checkUpdate', 'getAppVersion', 'eLog'],
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

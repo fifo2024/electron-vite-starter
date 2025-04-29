@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Systeminformation } from 'systeminformation'
 
 const { electron } = window
 const { ipcRenderer, process } = electron
@@ -7,6 +8,7 @@ function Versions(): JSX.Element {
     const [versions] = useState(process.versions)
     const [data, setData] = useState('')
     const [appVersion, setAppVersion] = useState('')
+    const [systemInfo, setSystemInfo] = useState<{ cpu: Systeminformation.CpuData } | null>(null)
 
     const onSendMyapp = (): void => {
         fetch('myapp://data/?abc=123&e=333')
@@ -27,7 +29,18 @@ function Versions(): JSX.Element {
         ipcRenderer.invoke('getAppVersion').then(ver => {
             setAppVersion(ver)
         })
+
+        fetch('myapp://get_system_info')
+            .then(res => {
+                return res.json()
+            })
+            .then(res => {
+                console.log(38, res)
+                setSystemInfo(res)
+            })
     }, [])
+
+    console.log(systemInfo)
 
     return (
         <>
@@ -41,6 +54,12 @@ function Versions(): JSX.Element {
             <button onClick={onSendMyapp}>send</button>
             <div>Result::{data}</div>
             <div>{Math.random()}</div>
+            <div>
+                <div>
+                    <span>CPU(核心数): </span>
+                    <span>{systemInfo?.cpu.cores}</span>
+                </div>
+            </div>
         </>
     )
 }

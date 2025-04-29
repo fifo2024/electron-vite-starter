@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { eLog } from '@renderer/common/log'
 import Versions from './components/Versions'
 import electronLogo from './assets/electron.svg'
 
@@ -55,6 +56,17 @@ function App(): JSX.Element {
                 <div className="action">
                     <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
                         Send IPC
+                    </a>
+                </div>
+                <div className="action">
+                    <a
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => {
+                            eLog.info(JSON.stringify({ a: 123, b: '12321' }))
+                        }}
+                    >
+                        Send Log
                     </a>
                 </div>
             </div>
