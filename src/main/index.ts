@@ -142,7 +142,7 @@ app.whenReady().then(async () => {
 app.on('ready', () => {
     // 每次启动程序，就检查更新
     setTimeout(() => {
-        checkForUpdates(mainWindow)
+        !is.dev && checkForUpdates(mainWindow)
     }, 3000)
 })
 
